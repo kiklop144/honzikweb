@@ -1,0 +1,27 @@
+.navbar{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    background-color: aqua;
+    color: blue;
+    font-family: Arial, sans-serif;
+}
+.navbar .logo{
+    font-size: 22px;
+    font-weight: bold;
+}
+.nav-links{
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 20px;
+}
+li{
+    background-color: aqua;
+    color: aquamarine;
+    border: 1px darkblue;
+    padding: 10px 20px;
+
+}
