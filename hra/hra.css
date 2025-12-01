@@ -1,0 +1,27 @@
+h1{
+    color: blue;
+    font-family: 'Arial Black', Gadget, sans-serif;
+    text-align: center;
+}
+p{
+    color: rgb(2, 2, 135);
+    font-family: Arial, sans-serif;
+    font-size: 18px;
+    text-align: center;
+}
+a{
+    color: rgb(2, 2, 135);
+    font-weight: bold;
+    border: 5px solid rgb(2, 2, 135);
+    padding: 10px;
+    border-radius: 10px;
+    background-color: rgba(57, 48, 187, 0.53);
+}
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    height: 100vh; /* Makes the body take full viewport height */
+    margin: 0; /* Removes default margin */
+  }
