@@ -2,33 +2,20 @@
 chcp 65001 >nul
 
 :: ============================================
-::  NASTAVENI CEST — UPRAV SI PODLE SEBE
-:: ============================================
-SET "HOME_PATH=C:\Users\TvojeJmeno\Documents\Repo"
-SET "SCHOOL_PATH=I:\webhonzik"
-
-:: ============================================
 ::  VYBER LOKACE
 :: ============================================
 :select_location
 echo.
-echo Kde jsi?
-echo [d] doma
-echo [s] skola
-echo [j] jina cesta
+echo je toto tvůj repozitář
+echo [a] ano
+echo [n] ne
 set /p LOC=Zadej volbu: 
 
-if /i "%LOC%"=="d" (
-    cd /d "%HOME_PATH%"
+if /i "%LOC%"=="a" (
     goto show_changes
 )
 
-if /i "%LOC%"=="s" (
-    cd /d "%SCHOOL_PATH%"
-    goto show_changes
-)
-
-if /i "%LOC%"=="j" (
+if /i "%LOC%"=="n" (
     set /p CUSTOM=Zadej cestu k repozitari: 
     cd /d "%CUSTOM%"
     goto show_changes
