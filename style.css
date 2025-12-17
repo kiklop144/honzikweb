@@ -31,10 +31,6 @@ html, body{
     direction: flex;
     margin: 0;
 }
-body{
-display: flex;
-flex-direction: column;
-}
 footer{
     background: aqua;
     color: blue;
@@ -54,14 +50,30 @@ footer{
     opacity: 1;
     text-decoration: underline;
 }
-#lorem-ipsum:hover{
-    content: Lorem ipsum dolor sit amet, consectetuer adipiscing elit.;
-    animation: TextChange 3s forwards;
+h1{
+    color: blue;
+    font-family: 'Arial Black', Gadget, sans-serif;
+    text-align: center;
 }
-@keyframes TextChange{
-    0% {content:Lorem ipsum dolor sit amet, consectetuer adipiscing elit.}
-    25% {rotate: 90;}
-    50% {rotate: 180; content: Ha myslel sis že budou jen nejakej text;}
-    75% {rotate: 270}
-    100% {rotate:360}
+p{
+    color: rgb(2, 2, 135);
+    font-family: Arial, sans-serif;
+    font-size: 18px;
+    text-align: center;
 }
+a{
+    color: rgb(2, 2, 135);
+    font-weight: bold;
+    border: 5px solid rgb(2, 2, 135);
+    padding: 10px;
+    border-radius: 10px;
+    background-color: rgba(57, 48, 187, 0.53);
+}
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+  }
