@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>3D Kart Racer (Working Movement)</title>
+<style>
+body { margin:0; background:#111; color:white; font-family:Arial; }
+canvas { display:block; margin:auto; background:#66aaff; }
+#menu {
+    position:absolute; inset:0;
+    background:rgba(0,0,0,.85);
+    display:flex; flex-direction:column;
+    justify-content:center; align-items:center;
+}
+button, select { font-size:18px; padding:8px 14px; }
+</style>
+</head>
+<body>
+
+<div id="menu">
+<h1>3D Kart Racer</h1>
+<select id="difficulty">
+<option value="easy">Easy</option>
+<option value="medium" selected>Medium</option>
+<option value="hard">Hard</option>
+</select>
+<button id="start">Start Race</button>
+<p>↑ Accelerate | ↓ Brake | ← → Steer</p>
+</div>
+
+<canvas id="c" width="900" height="600"></canvas>
+
+<script>
+/* =====================================================
+   CONFIG
+===================================================== */
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+const W = canvas.width;
+const H = canvas.height;
+const HORIZON = 220;
+
+const ROAD_WIDTH = 2000;
+const SEG_LEN = 50;
+const SEGMENTS = 400;
+const TOTAL_LAPS = 3;
+
+const keys = {};
+onkeydown = e => keys[e.code] = true;
+onkeyup = e => keys[e.code] = false;
+
+/* =====================================================
+   TRACK (OVAL WITH CURVE)
+===================================================== */
+const track = [];
+for (let i = 0; i < SEGMENTS; i++) {
+    const a = (i / SEGMENTS) * Math.PI * 2;
+    track.push({
+        curve: Math.sin(a) * 2
+    });
+}
+
+/* =====================================================
+   KART
+===================================================== */
+class Kart {
+    constructor(color, ai=false, diff="medium") {
+        this.x = 0;
+        this.z = 0;
+        this.speed = 0;
+        this.color = color;
+        this.lap = 0;
+        this.ai = ai;
+
+        const d = {
+            easy:{max:180},
+            medium:{max:220},
+            hard:{max:260}
+        }[diff];
+
+        this.maxSpeed = d.max;
+    }
+
+    update(player=false) {
+        if (player) {
+            if (keys.ArrowUp) this.speed += 4;
+            if (keys.ArrowDown) this.speed -= 6;
+
+            const steer = this.speed / this.maxSpeed;
+            if (keys.ArrowLeft) this.x -= 60 * steer;
+            if (keys.ArrowRight) this.x += 60 * steer;
+        } else {
+            this.speed += 2;
+            this.x *= 0.9;
+        }
+
+        this.speed = Math.max(0, Math.min(this.speed, this.maxSpeed));
+        this.z += this.speed;
+
+        if (this.z >= SEGMENTS * SEG_LEN) {
+            this.z -= SEGMENTS * SEG_LEN;
+            this.lap++;
+        }
+    }
+}
+
+/* =====================================================
+   GAME STATE
+===================================================== */
+let player;
+let aiKarts = [];
+let running = false;
+
+document.getElementById("start").onclick = () => {
+    document.getElementById("menu").style.display = "none";
+    const diff = document.getElementById("difficulty").value;
+    player = new Kart("red");
+    aiKarts = [
+        new Kart("blue", true, diff),
+        new Kart("orange", true, diff),
+        new Kart("purple", true, diff)
+    ];
+    running = true;
+    requestAnimationFrame(loop);
+};
+
+/* =====================================================
+   3D PROJECTION
+===================================================== */
+function project(x, z) {
+    const scale = 300 / z;
+    return {
+        x: W/2 + x * scale,
+        y: HORIZON + scale * 600,
+        w: scale * ROAD_WIDTH
+    };
+}
+
+/* =====================================================
+   DRAW ROAD (TRUE MOVEMENT)
+===================================================== */
+function drawRoad() {
+    let baseSeg = Math.floor(player.z / SEG_LEN);
+    let camX = player.x;
+    let dx = 0;
+
+    for (let n = 0; n < 200; n++) {
+        const seg = track[(baseSeg + n) % SEGMENTS];
+        dx += seg.curve;
+
+        const z1 = n * SEG_LEN - (player.z % SEG_LEN);
+        const z2 = z1 + SEG_LEN;
+        if (z1 <= 0) continue;
+
+        const p1 = project(camX - dx, z1);
+        const p2 = project(camX - dx - seg.curve * 100, z2);
+
+        ctx.fillStyle = n % 2 ? "#555" : "#666";
+        ctx.beginPath();
+        ctx.moveTo(p1.x - p1.w, p1.y);
+        ctx.lineTo(p2.x - p2.w, p2.y);
+        ctx.lineTo(p2.x + p2.w, p2.y);
+        ctx.lineTo(p1.x + p1.w, p1.y);
+        ctx.fill();
+    }
+}
+
+/* =====================================================
+   DRAW KARTS
+===================================================== */
+function drawKart(k) {
+    const dz = k.z - player.z;
+    if (dz <= 0 || dz > 8000) return;
+
+    const p = project(k.x - player.x, dz);
+    const size = p.w * 0.15;
+
+    ctx.fillStyle = k.color;
+    ctx.fillRect(p.x - size/2, p.y - size, size, size);
+}
+
+/* =====================================================
+   LOOP
+===================================================== */
+function loop() {
+    ctx.clearRect(0,0,W,H);
+
+    ctx.fillStyle = "#66aaff";
+    ctx.fillRect(0,0,W,HORIZON);
+    ctx.fillStyle = "#3a9c3a";
+    ctx.fillRect(0,HORIZON,W,H);
+
+    player.update(true);
+    aiKarts.forEach(k => {
+        k.z = player.z + 2000 + Math.random()*2000;
+        k.update();
+        drawKart(k);
+    });
+
+    drawRoad();
+
+    // HUD
+    ctx.fillStyle = "white";
+    ctx.fillText(`Speed: ${Math.floor(player.speed)}`, 10, 20);
+    ctx.fillText(`Lap: ${player.lap+1}/${TOTAL_LAPS}`, 10, 40);
+
+    if (player.lap < TOTAL_LAPS)
+        requestAnimationFrame(loop);
+    else
+        ctx.fillText("FINISH!", W/2 - 30, H/2);
+}
+</script>
+</body>
+</html>

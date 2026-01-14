@@ -6,6 +6,8 @@
     background-color: aqua;
     color: blue;
     font-family: Arial, sans-serif;
+    width: 100%;
+    box-sizing: border-box;
 }
 .navbar .logo{
     font-size: 22px;
@@ -17,6 +19,25 @@
     padding: 0;
     display: flex;
     gap: 20px;
+}
+.nav-links li{
+    text-decoration: none;
+    color: blue;
+    font-weight: bold;
+    border: none;
+    padding: 0;
+    border-radius: 0;
+    background-color: transparent;
+}
+.nav-links a{
+    color: blue;
+    font-weight: bold;
+    border: 5px solid blue;
+    padding: 10px;
+    border-radius: 10px;
+    background-color: rgba(57, 48, 187, 0.53);
+    text-decoration: none;
+    display: inline-block;
 }
 li{
     text-decoration: none;
@@ -30,12 +51,25 @@ li{
 html, body{
     direction: flex;
     margin: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 footer{
     background: aqua;
     color: blue;
     padding: 20px 10px;
     text-align: center;
+    margin-top: auto;
+    width: 100%;
+    box-sizing: border-box;
 }
 .foot-links{
     margin-bottom: 10px;
@@ -50,12 +84,12 @@ footer{
     opacity: 1;
     text-decoration: underline;
 }
-h1{
+.hra-odkaz{
     color: blue;
     font-family: 'Arial Black', Gadget, sans-serif;
     text-align: center;
 }
-p{
+.hra-text{
     color: rgb(2, 2, 135);
     font-family: Arial, sans-serif;
     font-size: 18px;
@@ -74,6 +108,5 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 100vh;
     margin: 0;
   }

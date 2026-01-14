@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mario Kart 3D Racing Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 100%;
+            max-width: 1200px;
+            aspect-ratio: 4/3;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        #menuScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            gap: 40px;
+        }
+
+        .menu-hidden {
+            display: none !important;
+        }
+
+        h1 {
+            color: white;
+            font-size: 48px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            margin-bottom: 20px;
+        }
+
+        .difficulty-section {
+            text-align: center;
+        }
+
+        .difficulty-section p {
+            color: white;
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .difficulty-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 15px 40px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .difficulty-btn {
+            min-width: 120px;
+        }
+
+        .difficulty-btn.easy {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+        }
+
+        .difficulty-btn.easy:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .difficulty-btn.medium {
+            background: linear-gradient(135deg, #FFC107, #FFB300);
+        }
+
+        .difficulty-btn.medium:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.4);
+        }
+
+        .difficulty-btn.hard {
+            background: linear-gradient(135deg, #f44336, #da190b);
+        }
+
+        .difficulty-btn.hard:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(244, 67, 54, 0.4);
+        }
+
+        #instructions {
+            color: white;
+            text-align: center;
+            margin-top: 30px;
+            font-size: 14px;
+            max-width: 500px;
+            line-height: 1.6;
+        }
+
+        .info-bar {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(255,255,255,0.95);
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 50;
+            max-width: 250px;
+        }
+
+        #raceFinishScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 150;
+            gap: 30px;
+        }
+
+        .finish-hidden {
+            display: none !important;
+        }
+
+        #raceFinishScreen h2 {
+            color: gold;
+            font-size: 48px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+        }
+
+        #finalPositions {
+            color: white;
+            font-size: 20px;
+            text-align: center;
+            line-height: 2;
+            background: rgba(0,0,0,0.5);
+            padding: 20px 40px;
+            border-radius: 10px;
+        }
+
+        #finalPositions div {
+            margin: 10px 0;
+        }
+
+        #restartBtn {
+            padding: 15px 50px;
+            font-size: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        #restartBtn:hover {
+            transform: scale(1.05);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 32px;
+            }
+            .difficulty-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        
+        <div id="menuScreen">
+            <h1>🏎️ MARIO KART RACING 🏎️</h1>
+            <div class="difficulty-section">
+                <p>Select Difficulty:</p>
+                <div class="difficulty-buttons">
+                    <button class="difficulty-btn easy" onclick="startGame('easy')">🟢 EASY</button>
+                    <button class="difficulty-btn medium" onclick="startGame('medium')">🟡 MEDIUM</button>
+                    <button class="difficulty-btn hard" onclick="startGame('hard')">🔴 HARD</button>
+                </div>
+            </div>
+            <div id="instructions">
+                <p><strong>Controls:</strong></p>
+                <p>Arrow Keys or WASD to move<br>
+                Space to use item<br>
+                Collect item boxes to gain power-ups</p>
+            </div>
+        </div>
+
+        <div id="infoBar" class="info-bar"></div>
+
+        <div id="raceFinishScreen" class="finish-hidden">
+            <h2>RACE FINISHED!</h2>
+            <div id="finalPositions"></div>
+            <button id="restartBtn" onclick="goToMenu()">Back to Menu</button>
+        </div>
+    </div>
+
+    <script>
+        // ==================== GAME CONFIGURATION ====================
+        const CANVAS_WIDTH = 1200;
+        const CANVAS_HEIGHT = 900;
+        const LAP_COUNT = 3;
+
+        // ==================== GAME STATE ====================
+        let gameState = {
+            state: 'menu',
+            difficulty: 'medium',
+            raceFinished: false,
+            winner: null
+        };
+
+        let player = null;
+        let cpuKarts = [];
+        let itemBoxes = [];
+        let projectiles = [];
+        let traps = [];
+        let trackWaypoints = [];
+
+        // ==================== CANVAS SETUP ====================
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = CANVAS_WIDTH;
+        canvas.height = CANVAS_HEIGHT;
+
+        // ==================== INPUT HANDLING ====================
+        const keys = {};
+        window.addEventListener('keydown', (e) => { keys[e.key.toLowerCase()] = true; });
+        window.addEventListener('keyup', (e) => { keys[e.key.toLowerCase()] = false; });
+
+        // ==================== 3D PROJECTION (ISOMETRIC) ====================
+        function project3D(x, y, z = 0) {
+            // Simple isometric projection - just return the world coordinates
+            // The track is already in screen space
+            return { x: x, y: y };
+        }
+
+        // ==================== KART CLASS ====================
+        class Kart {
+            constructor(x, y, name, isPlayer = false, difficulty = 'medium') {
+                this.x = x;
+                this.y = y;
+                this.z = 0;
+                this.vx = 0;
+                this.vy = 0;
+                this.angle = 0;
+                this.width = 15;
+                this.height = 25;
+                this.name = name;
+                this.isPlayer = isPlayer;
+                this.difficulty = difficulty;
+                
+                // Physics
+                this.acceleration = 0.2;
+                this.maxSpeed = 6;
+                this.friction = 0.94;
+                this.rotationSpeed = 0.06;
+                
+                // Race tracking
+                this.currentWaypoint = 0;
+                this.lapCount = 0;
+                this.passedCheckpoints = new Set();
+                
+                // Items
+                this.currentItem = null;
+                
+                // AI
+                this.aiTimer = 0;
+            }
+
+            update() {
+                if (this.isPlayer) {
+                    this.handlePlayerInput();
+                } else {
+                    this.updateAI();
+                }
+
+                // Apply velocity and friction
+                this.vx *= this.friction;
+                this.vy *= this.friction;
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Clamp speed
+                const speed = Math.sqrt(this.vx ** 2 + this.vy ** 2);
+                if (speed > this.maxSpeed) {
+                    const scale = this.maxSpeed / speed;
+                    this.vx *= scale;
+                    this.vy *= scale;
+                }
+
+                // Boundary wrapping
+                if (this.x < 0) this.x += 1200;
+                if (this.x > 1200) this.x -= 1200;
+                if (this.y < 0) this.y += 900;
+                if (this.y > 900) this.y -= 900;
+
+                // Update waypoint
+                this.updateWaypointProgress();
+            }
+
+            handlePlayerInput() {
+                // Acceleration
+                if (keys['arrowup'] || keys['w']) {
+                    this.vx += Math.cos(this.angle) * this.acceleration;
+                    this.vy += Math.sin(this.angle) * this.acceleration;
+                }
+
+                // Braking
+                if (keys['arrowdown'] || keys['s']) {
+                    this.vx *= 0.8;
+                    this.vy *= 0.8;
+                }
+
+                // Turning
+                if (keys['arrowleft'] || keys['a']) {
+                    this.angle -= this.rotationSpeed;
+                }
+                if (keys['arrowright'] || keys['d']) {
+                    this.angle += this.rotationSpeed;
+                }
+
+                // Use item
+                if (keys[' '] && this.currentItem) {
+                    this.useItem();
+                    this.currentItem = null;
+                    keys[' '] = false;
+                }
+            }
+
+            updateAI() {
+                const difficultyMods = {
+                    easy: { speed: 0.12, reaction: 15, accuracy: 0.8 },
+                    medium: { speed: 0.15, reaction: 10, accuracy: 0.9 },
+                    hard: { speed: 0.18, reaction: 5, accuracy: 1.0 }
+                };
+
+                const mod = difficultyMods[this.difficulty];
+                this.aiTimer++;
+
+                if (this.aiTimer > mod.reaction) {
+                    this.aiTimer = 0;
+
+                    // Get target waypoint
+                    const target = trackWaypoints[this.currentWaypoint];
+                    const dx = target.x - this.x;
+                    const dy = target.y - this.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    // Calculate target angle
+                    let targetAngle = Math.atan2(dy, dx);
+                    let angleDiff = targetAngle - this.angle;
+
+                    // Normalize angle
+                    while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+                    while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+
+                    // Add random error on easier difficulties
+                    if (this.difficulty !== 'hard' && Math.random() < 0.1) {
+                        angleDiff += (Math.random() - 0.5) * 0.4;
+                    }
+
+                    // Steer
+                    if (Math.abs(angleDiff) > 0.05) {
+                        this.angle += Math.sign(angleDiff) * this.rotationSpeed;
+                    }
+
+                    // Always accelerate
+                    this.vx += Math.cos(this.angle) * mod.speed;
+                    this.vy += Math.sin(this.angle) * mod.speed;
+
+                    // Use item sometimes
+                    if (this.currentItem && distance < 200 && Math.random() < 0.1) {
+                        this.useItem();
+                        this.currentItem = null;
+                    }
+                }
+            }
+
+            updateWaypointProgress() {
+                const waypoint = trackWaypoints[this.currentWaypoint];
+                const dx = waypoint.x - this.x;
+                const dy = waypoint.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < 60) {
+                    const nextWaypoint = (this.currentWaypoint + 1) % trackWaypoints.length;
+                    
+                    // Check if lap completed
+                    if (nextWaypoint === 0 && this.currentWaypoint !== 0) {
+                        this.lapCount++;
+                    }
+                    
+                    this.currentWaypoint = nextWaypoint;
+                    this.passedCheckpoints.add(this.currentWaypoint);
+                }
+            }
+
+            useItem() {
+                const items = ['boost', 'projectile', 'trap'];
+                const item = items[Math.floor(Math.random() * items.length)];
+
+                if (item === 'boost') {
+                    this.vx *= 1.8;
+                    this.vy *= 1.8;
+                }
+                if (item === 'projectile') {
+                    launchProjectile(this);
+                }
+                if (item === 'trap') {
+                    createTrap(this);
+                }
+            }
+
+            draw(ctx) {
+                const proj = project3D(this.x, this.y, this.z);
+                
+                ctx.save();
+                ctx.translate(proj.x, proj.y);
+                ctx.rotate(this.angle);
+
+                // Shadow
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+                ctx.fillRect(-this.width / 2, this.height / 2 + 3, this.width, 4);
+
+                // 3D body (darker bottom)
+                ctx.fillStyle = this.isPlayer ? '#FF6B00' : this.getColor();
+                ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
+
+                // 3D side
+                ctx.fillStyle = this.isPlayer ? '#CC5500' : this.getDarkColor();
+                ctx.fillRect(this.width / 2 - 3, -this.height / 2, 3, this.height);
+
+                // Windshield
+                ctx.fillStyle = 'rgba(100, 200, 255, 0.6)';
+                ctx.fillRect(-this.width / 2 + 2, -this.height / 2 + 5, this.width - 4, 8);
+
+                // Item indicator
+                if (this.currentItem) {
+                    ctx.fillStyle = '#FFD700';
+                    ctx.beginPath();
+                    ctx.arc(0, -this.height / 2 - 8, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                ctx.restore();
+
+                // Draw name
+                ctx.fillStyle = '#000';
+                ctx.font = 'bold 11px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(this.name, proj.x, proj.y + 25);
+            }
+
+            getColor() {
+                const colors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF'];
+                return colors[Math.floor((this.x + this.y) / 100) % colors.length];
+            }
+
+            getDarkColor() {
+                const darkColors = ['#CC0000', '#00CC00', '#0000CC', '#CCCC00', '#CC00CC'];
+                return darkColors[Math.floor((this.x + this.y) / 100) % darkColors.length];
+            }
+        }
+
+        // ==================== ITEM CLASSES ====================
+        class ItemBox {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.z = 0;
+                this.width = 25;
+                this.height = 25;
+                this.rotation = 0;
+            }
+
+            update() {
+                this.rotation += 0.05;
+                this.z = Math.sin(this.rotation) * 5;
+            }
+
+            draw(ctx) {
+                const proj = project3D(this.x, this.y, this.z);
+                ctx.save();
+                ctx.translate(proj.x, proj.y);
+                ctx.rotate(this.rotation);
+
+                ctx.fillStyle = '#FFD700';
+                ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
+                ctx.fillStyle = '#FF0000';
+                ctx.fillRect(-this.width / 2 + 3, -this.height / 2 + 3, this.width - 6, this.height - 6);
+
+                ctx.restore();
+            }
+
+            checkCollision(kart) {
+                const dx = kart.x - this.x;
+                const dy = kart.y - this.y;
+                return Math.sqrt(dx * dx + dy * dy) < 45;
+            }
+        }
+
+        class Projectile {
+            constructor(x, y, angle) {
+                this.x = x;
+                this.y = y;
+                this.z = 0;
+                this.vx = Math.cos(angle) * 8;
+                this.vy = Math.sin(angle) * 8;
+                this.lifetime = 300;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.lifetime--;
+            }
+
+            draw(ctx) {
+                const proj = project3D(this.x, this.y, this.z);
+                ctx.fillStyle = '#FF0000';
+                ctx.beginPath();
+                ctx.arc(proj.x, proj.y, 6, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            checkCollision(kart) {
+                const dx = kart.x - this.x;
+                const dy = kart.y - this.y;
+                return Math.sqrt(dx * dx + dy * dy) < 20;
+            }
+        }
+
+        class Trap {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.z = 0;
+                this.lifetime = 600;
+                this.radius = 50;
+            }
+
+            update() {
+                this.lifetime--;
+            }
+
+            draw(ctx) {
+                const proj = project3D(this.x, this.y, this.z);
+                ctx.fillStyle = 'rgba(255, 0, 0, 0.2)';
+                ctx.beginPath();
+                ctx.arc(proj.x, proj.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.strokeStyle = '#FF0000';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+
+            checkCollision(kart) {
+                const dx = kart.x - this.x;
+                const dy = kart.y - this.y;
+                return Math.sqrt(dx * dx + dy * dy) < this.radius + 15;
+            }
+        }
+
+        function launchProjectile(kart) {
+            projectiles.push(new Projectile(kart.x, kart.y, kart.angle));
+        }
+
+        function createTrap(kart) {
+            traps.push(new Trap(kart.x, kart.y));
+        }
+
+        // ==================== TRACK GENERATION ====================
+        function generateOvalTrack() {
+            const waypoints = [];
+            const centerX = CANVAS_WIDTH / 2;
+            const centerY = CANVAS_HEIGHT / 2;
+            const radiusX = 300;
+            const radiusY = 200;
+
+            for (let i = 0; i < 50; i++) {
+                const angle = (i / 50) * Math.PI * 2;
+                const x = centerX + Math.cos(angle) * radiusX;
+                const y = centerY + Math.sin(angle) * radiusY;
+                waypoints.push({ x, y });
+            }
+
+            return waypoints;
+        }
+
+        // ==================== GAME LOGIC ====================
+        function updateAllKarts() {
+            if (player) player.update();
+            cpuKarts.forEach(kart => kart.update());
+        }
+
+        function updateItems() {
+            // Update and filter projectiles
+            projectiles = projectiles.filter(p => {
+                p.update();
+                
+                const allKarts = [player, ...cpuKarts].filter(k => k);
+                for (let kart of allKarts) {
+                    if (p.checkCollision(kart)) {
+                        kart.vx *= 0.5;
+                        kart.vy *= 0.5;
+                        return false;
+                    }
+                }
+                
+                return p.lifetime > 0;
+            });
+
+            // Update and filter traps
+            traps = traps.filter(t => {
+                t.update();
+                
+                const allKarts = [player, ...cpuKarts].filter(k => k);
+                for (let kart of allKarts) {
+                    if (t.checkCollision(kart)) {
+                        kart.vx *= 0.65;
+                        kart.vy *= 0.65;
+                    }
+                }
+                
+                return t.lifetime > 0;
+            });
+        }
+
+        function checkItemBoxCollisions() {
+            itemBoxes = itemBoxes.filter(box => {
+                const allKarts = [player, ...cpuKarts].filter(k => k);
+                
+                for (let kart of allKarts) {
+                    if (box.checkCollision(kart)) {
+                        kart.currentItem = 'power';
+                        return false;
+                    }
+                }
+                
+                return true;
+            });
+        }
+
+        function getKartPosition(kart) {
+            return kart.lapCount * trackWaypoints.length + kart.currentWaypoint;
+        }
+
+        function getRacePositions() {
+            const allKarts = [player, ...cpuKarts].filter(k => k);
+            return allKarts
+                .map(kart => ({ kart, position: getKartPosition(kart) }))
+                .sort((a, b) => b.position - a.position);
+        }
+
+        function checkFinishLine() {
+            if (player && player.lapCount >= LAP_COUNT && !gameState.raceFinished) {
+                gameState.raceFinished = true;
+                gameState.state = 'finished';
+                gameState.winner = player.name;
+
+                const positions = getRacePositions();
+                const resultsHTML = positions
+                    .map((p, i) => `${i + 1}. ${p.kart.name} - Lap ${p.kart.lapCount}`)
+                    .join('\n');
+
+                document.getElementById('finalPositions').innerHTML = resultsHTML.split('\n').map(line => `<div>${line}</div>`).join('');
+                document.getElementById('raceFinishScreen').classList.remove('finish-hidden');
+            }
+        }
+
+        // ==================== RENDERING ====================
+        function renderGame() {
+            // Clear canvas with gradient
+            const gradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(1, '#90EE90');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+            // Draw track
+            drawTrack();
+
+            // Sort entities by depth (y position) for proper 3D rendering
+            const allEntities = [];
+            
+            if (player) allEntities.push({ type: 'kart', obj: player });
+            cpuKarts.forEach(k => allEntities.push({ type: 'kart', obj: k }));
+            itemBoxes.forEach(b => allEntities.push({ type: 'itembox', obj: b }));
+            projectiles.forEach(p => allEntities.push({ type: 'projectile', obj: p }));
+            traps.forEach(t => allEntities.push({ type: 'trap', obj: t }));
+
+            // Sort by y position for depth
+            allEntities.sort((a, b) => a.obj.y - b.obj.y);
+
+            // Draw sorted entities
+            allEntities.forEach(entity => {
+                if (entity.type === 'kart') entity.obj.draw(ctx);
+                else if (entity.type === 'itembox') entity.obj.draw(ctx);
+                else if (entity.type === 'projectile') entity.obj.draw(ctx);
+                else if (entity.type === 'trap') entity.obj.draw(ctx);
+            });
+        }
+
+        function drawTrack() {
+            // Draw track background
+            const centerX = CANVAS_WIDTH / 2;
+            const centerY = CANVAS_HEIGHT / 2;
+            const radiusX = 300;
+            const radiusY = 200;
+
+            // Draw grass outer area
+            ctx.fillStyle = '#228B22';
+            ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+            // Draw track
+            ctx.fillStyle = '#505050';
+            ctx.beginPath();
+            for (let i = 0; i < 50; i++) {
+                const angle = (i / 50) * Math.PI * 2;
+                const x = centerX + Math.cos(angle) * (radiusX + 30);
+                const y = centerY + Math.sin(angle) * (radiusY + 30);
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+
+            // Draw inner track boundary
+            ctx.fillStyle = '#696969';
+            ctx.beginPath();
+            for (let i = 0; i < 50; i++) {
+                const angle = (i / 50) * Math.PI * 2;
+                const x = centerX + Math.cos(angle) * (radiusX - 30);
+                const y = centerY + Math.sin(angle) * (radiusY - 30);
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+
+            // Draw center line
+            ctx.strokeStyle = '#FFFF00';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([15, 15]);
+            ctx.beginPath();
+            for (let i = 0; i < 50; i++) {
+                const angle = (i / 50) * Math.PI * 2;
+                const x = centerX + Math.cos(angle) * radiusX;
+                const y = centerY + Math.sin(angle) * radiusY;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw start/finish line
+            const startWaypoint = trackWaypoints[0];
+            const nextWaypoint = trackWaypoints[1];
+            const dx = nextWaypoint.x - startWaypoint.x;
+            const dy = nextWaypoint.y - startWaypoint.y;
+            const length = Math.sqrt(dx * dx + dy * dy);
+            const perpX = -dy / length * 50;
+            const perpY = dx / length * 50;
+
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(startWaypoint.x - perpX, startWaypoint.y - perpY, perpX * 2, perpY * 2);
+            
+            for (let i = 0; i < 4; i++) {
+                ctx.fillStyle = i % 2 === 0 ? '#000000' : '#FFFFFF';
+                ctx.fillRect(
+                    startWaypoint.x - perpX + (perpX * 2 / 4) * i,
+                    startWaypoint.y - perpY + (perpY * 2 / 4) * i,
+                    perpX * 2 / 4,
+                    perpY * 2 / 4
+                );
+            }
+        }
+
+        function updateInfoBar() {
+            const positions = getRacePositions();
+            let infoHTML = '<strong>🏁 RACE POSITIONS 🏁</strong><br>';
+            
+            positions.forEach((p, i) => {
+                const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '  ';
+                const indicator = p.kart === player ? '👉 ' : '  ';
+                infoHTML += `${i + 1}. ${medal} ${indicator}${p.kart.name} (L${p.kart.lapCount})<br>`;
+            });
+
+            infoHTML += `<br><strong>DIFFICULTY:</strong> ${gameState.difficulty.toUpperCase()}`;
+            if (player && player.currentItem) {
+                infoHTML += `<br><strong>ITEM:</strong> ⚡`;
+            }
+
+            document.getElementById('infoBar').innerHTML = infoHTML;
+        }
+
+        // ==================== GAME INITIALIZATION ====================
+        function startGame(difficulty) {
+            gameState.state = 'racing';
+            gameState.difficulty = difficulty;
+            gameState.raceFinished = false;
+            gameState.winner = null;
+
+            // Hide menu
+            document.getElementById('menuScreen').classList.add('menu-hidden');
+            document.getElementById('raceFinishScreen').classList.add('finish-hidden');
+
+            // Initialize track
+            trackWaypoints = generateOvalTrack();
+
+            // Create player kart at start
+            player = new Kart(trackWaypoints[0].x - 50, trackWaypoints[0].y, 'YOU', true, difficulty);
+
+            // Create CPU karts
+            cpuKarts = [
+                new Kart(trackWaypoints[0].x + 50, trackWaypoints[0].y, 'CPU-1', false, difficulty),
+                new Kart(trackWaypoints[0].x - 100, trackWaypoints[0].y - 40, 'CPU-2', false, difficulty),
+                new Kart(trackWaypoints[0].x + 100, trackWaypoints[0].y + 40, 'CPU-3', false, difficulty)
+            ];
+
+            // Create item boxes scattered around track
+            itemBoxes = [];
+            for (let i = 0; i < 10; i++) {
+                const waypoint = trackWaypoints[Math.floor(Math.random() * trackWaypoints.length)];
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 80 + Math.random() * 60;
+                itemBoxes.push(new ItemBox(
+                    waypoint.x + Math.cos(angle) * distance,
+                    waypoint.y + Math.sin(angle) * distance
+                ));
+            }
+
+            projectiles = [];
+            traps = [];
+        }
+
+        function goToMenu() {
+            gameState.state = 'menu';
+            document.getElementById('menuScreen').classList.remove('menu-hidden');
+            document.getElementById('raceFinishScreen').classList.add('finish-hidden');
+            player = null;
+            cpuKarts = [];
+            itemBoxes = [];
+            projectiles = [];
+            traps = [];
+        }
+
+        // ==================== MAIN GAME LOOP ====================
+        function gameLoop() {
+            if (gameState.state === 'racing') {
+                updateAllKarts();
+                updateItems();
+                checkItemBoxCollisions();
+                checkFinishLine();
+                renderGame();
+                updateInfoBar();
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Initialize track waypoints
+        trackWaypoints = generateOvalTrack();
+
+        // Start game loop
+        gameLoop();
+    </script>
+</body>
+</html>
