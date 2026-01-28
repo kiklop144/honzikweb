@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adventure Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 800px;
+            padding: 30px;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 28px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            font-weight: bold;
+        }
+
+        .stat {
+            background: #f0f0f0;
+            padding: 10px 15px;
+            border-radius: 8px;
+            color: #333;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            display: block;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            color: #667eea;
+        }
+
+        .story-section {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 5px solid #667eea;
+            min-height: 150px;
+        }
+
+        .story-title {
+            font-size: 22px;
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .story-text {
+            color: #555;
+            line-height: 1.6;
+            font-size: 16px;
+        }
+
+        .inventory {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .inventory-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .inventory-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .item {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            position: relative;
+        }
+
+        .item:hover {
+            transform: scale(1.05);
+        }
+
+        .item-count {
+            font-size: 12px;
+            margin-left: 5px;
+            opacity: 0.8;
+        }
+
+        .empty-inventory {
+            color: #999;
+            font-style: italic;
+        }
+
+        .buttons-section {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .special-action {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .special-action:hover {
+            box-shadow: 0 5px 20px rgba(245, 87, 108, 0.4);
+        }
+
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border-left: 4px solid #ffc107;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border-left: 4px solid #28a745;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border-left: 4px solid #f5576c;
+        }
+
+        .home-button {
+            margin-top: 20px;
+            background: #6c757d;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .home-button:hover {
+            background: #5a6268;
+            box-shadow: 0 5px 20px rgba(108, 117, 125, 0.4);
+        }
+
+        .message {
+            display: none;
+            margin: 15px 0;
+            padding: 12px;
+            border-radius: 6px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <h1>⚔️ Adventure Quest</h1>
+            <div class="stats">
+                <div class="stat">
+                    <span class="stat-label">Gold</span>
+                    <span class="stat-value" id="gold">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Health</span>
+                    <span class="stat-value" id="health">100</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Level</span>
+                    <span class="stat-value" id="level">1</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="message" class="message"></div>
+
+        <div class="story-section">
+            <div class="story-title" id="storyTitle">Welcome Adventurer!</div>
+            <div class="story-text" id="storyText">Your journey begins in a peaceful village...</div>
+        </div>
+
+        <div class="inventory">
+            <div class="inventory-title">🎒 Inventory</div>
+            <div class="inventory-items" id="inventoryList">
+                <span class="empty-inventory">No items yet...</span>
+            </div>
+        </div>
+
+        <div class="buttons-section" id="buttonsSection">
+            <!-- Buttons will be dynamically generated -->
+        </div>
+
+        <a href="../../index.html" class="home-button">🏠 Back to Home</a>
+    </div>
+
+    <script>
+        // Game State
+        const gameState = {
+            currentScene: 'village',
+            gold: 0,
+            health: 100,
+            level: 1,
+            inventory: {},
+            visitedScenes: new Set(),
+            defeatedBosses: new Set()
+        };
+
+        // Game Scenes and Data
+        const scenes = {
+            village: {
+                title: '🏘️ The Village',
+                text: 'You stand in the center of a peaceful village. Chickens roam freely and villagers go about their daily business. A tavern to the west beckons with the smell of ale, and you notice a dark forest to the north. The castle sits imposingly to the east.',
+                actions: [
+                    { text: '🍺 Enter the Tavern', next: 'tavern', requires: null },
+                    { text: '🌲 Explore the Dark Forest', next: 'forest', requires: null },
+                    { text: '🏰 Approach the Castle', next: 'castle', requires: null },
+                    { text: '🏪 Visit the Shop', next: 'shop', requires: null }
+                ]
+            },
+            tavern: {
+                title: '🍺 The Rusty Anvil Tavern',
+                text: 'The tavern is loud and full of adventurers. The innkeeper, a stout dwarf, looks at you intently. You notice some patrons playing cards in the corner, and a bard is performing in the back.',
+                actions: [
+                    { text: '💬 Talk to the Innkeeper', next: 'innkeeper', requires: null },
+                    { text: '🎰 Join the Card Game', next: 'cardgame', requires: null },
+                    { text: '👂 Listen to the Bard', next: 'bard', requires: null },
+                    { text: '⬅️ Return to Village', next: 'village', requires: null }
+                ]
+            },
+            innkeeper: {
+                title: '💬 The Innkeeper Speaks',
+                text: 'The innkeeper tells you of a legendary sword hidden in the Dark Forest. He offers you a map for 50 gold coins. He also mentions that adventurers are hiring at the castle.',
+                actions: [
+                    { text: '💰 Buy the Map (50 gold)', next: 'buymap', requires: null, cost: 50 },
+                    { text: '⬅️ Return to Tavern', next: 'tavern', requires: null }
+                ]
+            },
+            buymap: {
+                title: '✅ Map Acquired!',
+                text: 'You purchased the ancient map. It shows the location of the legendary sword deep within the Dark Forest. You now have a much better chance of finding it!',
+                actions: [
+                    { text: '🌲 Go to Dark Forest with Map', next: 'forest_with_map', requires: 'map' },
+                    { text: '⬅️ Return to Tavern', next: 'tavern', requires: null }
+                ],
+                onEnter: (state) => {
+                    addItem(state, 'map', 1);
+                    state.gold -= 50;
+                }
+            },
+            cardgame: {
+                title: '🎰 High Stakes Poker',
+                text: 'You sit down at a table with grizzled card players. A game is already underway. You feel lucky today...',
+                actions: [
+                    { text: '🎲 Play and Win! (+100 gold)', next: 'cardwin', requires: null },
+                    { text: '🎲 Play and Lose! (-30 gold)', next: 'cardlose', requires: null },
+                    { text: '🚪 Leave without Playing', next: 'tavern', requires: null }
+                ]
+            },
+            cardwin: {
+                title: '🎉 Big Winner!',
+                text: 'Lady Luck smiles upon you! You win a huge pot of gold. The other players grumble as you rake in your winnings.',
+                actions: [
+                    { text: '🍻 Celebrate with a drink and return', next: 'tavern', requires: null }
+                ],
+                onEnter: (state) => {
+                    state.gold += 100;
+                }
+            },
+            cardlose: {
+                title: '😔 You Lose',
+                text: 'The cards were not in your favor today. You lose 30 gold coins. Better luck next time.',
+                actions: [
+                    { text: '😞 Leave the Game', next: 'tavern', requires: null }
+                ],
+                onEnter: (state) => {
+                    state.gold = Math.max(0, state.gold - 30);
+                }
+            },
+            bard: {
+                title: '🎵 The Bard\'s Tale',
+                text: 'The bard tells legendary tales of ancient dragons and lost kingdoms. You gain inspiration and knowledge. (+20 XP)',
+                actions: [
+                    { text: '⬅️ Return to Tavern', next: 'tavern', requires: null }
+                ],
+                onEnter: (state) => {
+                    addItem(state, 'inspiration', 1);
+                }
+            },
+            forest: {
+                title: '🌲 Dark Forest',
+                text: 'You enter a dense forest. The trees tower above you, blocking out much of the sunlight. You hear strange sounds in the distance. Without a map, you wander aimlessly and eventually find your way back.',
+                actions: [
+                    { text: '⬅️ Return to Village', next: 'village', requires: null },
+                    { text: '🏪 Maybe I should buy a map first...', next: 'tavern', requires: null }
+                ]
+            },
+            forest_with_map: {
+                title: '⚔️ The Legendary Sword',
+                text: 'With the map in hand, you navigate the forest expertly. Deep in an ancient ruins, you discover the legendary sword! It gleams with an otherworldly light. You take it, feeling its immense power.',
+                actions: [
+                    { text: '🎯 Seek out the Dragon with your new sword', next: 'dragon', requires: 'sword' },
+                    { text: '⬅️ Return to Village', next: 'village', requires: null }
+                ],
+                onEnter: (state) => {
+                    removeItem(state, 'map', 1);
+                    addItem(state, 'sword', 1);
+                }
+            },
+            dragon: {
+                title: '🐉 Battle with the Dragon',
+                text: 'You find the dragon\'s lair high in the mountains. The mighty beast emerges, eyes blazing with fire. The legendary sword feels heavy in your hands. This will be your greatest battle!',
+                actions: [
+                    { text: '⚡ Attack the Dragon with your sword!', next: 'dragon_win', requires: 'sword' },
+                    { text: '🛡️ Use the Dragon Shield (if you have one)', next: 'dragon_shield', requires: 'shield' },
+                    { text: '🏃 Flee from the Dragon', next: 'village', requires: null }
+                ]
+            },
+            dragon_win: {
+                title: '🏆 VICTORY!',
+                text: 'With a mighty swing, your sword pierces the dragon\'s heart. The beast roars one last time and falls. You are victorious! The dragon\'s treasure is yours. You gain 500 gold and reach Level 5!',
+                actions: [
+                    { text: '🎉 Return to Village as a Hero', next: 'village', requires: null }
+                ],
+                onEnter: (state) => {
+                    state.gold += 500;
+                    state.level = 5;
+                    state.defeatedBosses.add('dragon');
+                    addItem(state, 'dragon_scale', 3);
+                }
+            },
+            dragon_shield: {
+                title: '🛡️ Shield Defense',
+                text: 'You raise the dragon shield and the dragon\'s fire bounces off harmlessly. The shield is incredibly powerful! You manage to drive the dragon away.',
+                actions: [
+                    { text: '⬅️ Return to Village', next: 'village', requires: null }
+                ],
+                onEnter: (state) => {
+                    state.health += 30;
+                }
+            },
+            castle: {
+                title: '🏰 The Royal Castle',
+                text: 'You stand before the grand castle. Guards in full armor stand at attention. A noticeboard displays various quests seeking brave adventurers. You could speak to the guards or read the quests.',
+                actions: [
+                    { text: '🛡️ Speak to the Guard Captain', next: 'guard_captain', requires: null },
+                    { text: '📜 Read the Quest Board', next: 'questboard', requires: null },
+                    { text: '⬅️ Return to Village', next: 'village', requires: null }
+                ]
+            },
+            guard_captain: {
+                title: '👮 The Guard Captain',
+                text: 'The imposing guard captain nods at you. "We need someone brave to investigate the goblin caves to the east. Defeat the Goblin King and bring back proof of victory. We\'ll reward you handsomely."',
+                actions: [
+                    { text: '🏹 Accept the Quest', next: 'goblin_caves', requires: null },
+                    { text: '❌ Decline and Leave', next: 'castle', requires: null }
+                ]
+            },
+            questboard: {
+                title: '📜 Quest Board',
+                text: 'The board is filled with various quests:\n1. Slay the Goblin King\n2. Retrieve the Lost Amulet\n3. Investigate the Haunted Tower\n\nYou grab the documents and read them carefully.',
+                actions: [
+                    { text: '🏹 Choose: Slay the Goblin King', next: 'goblin_caves', requires: null },
+                    { text: '💎 Choose: Retrieve the Lost Amulet', next: 'amulet_quest', requires: null },
+                    { text: '👻 Choose: Investigate the Haunted Tower', next: 'tower', requires: null },
+                    { text: '⬅️ Return to Castle Entrance', next: 'castle', requires: null }
+                ]
+            },
+            goblin_caves: {
+                title: '⚔️ The Goblin Caves',
+                text: 'You venture into dark, smelly caves. Goblins screech and howl around you. You see the Goblin King on a throne at the back of the main chamber, sneering at you.',
+                actions: [
+                    { text: '🗡️ Fight the Goblin King', next: 'goblin_win', requires: null },
+                    { text: '💣 Use a Bomb (if you have one)', next: 'goblin_bomb', requires: 'bomb' },
+                    { text: '🏃 Retreat to Castle', next: 'castle', requires: null }
+                ]
+            },
+            goblin_win: {
+                title: '✅ Goblin King Defeated!',
+                text: 'You defeat the Goblin King in epic combat! The goblins scatter in fear. You collect proof of victory and return to the castle.',
+                actions: [
+                    { text: '🏰 Return to the Castle for your reward', next: 'castle_reward', requires: null }
+                ],
+                onEnter: (state) => {
+                    state.gold += 200;
+                    state.level = 3;
+                    state.defeatedBosses.add('goblin_king');
+                    addItem(state, 'goblin_proof', 1);
+                }
+            },
+            goblin_bomb: {
+                title: '💥 Explosive Victory!',
+                text: 'You toss a bomb into the goblin horde. KABOOM! The Goblin King is defeated instantly. Much easier than expected!',
+                actions: [
+                    { text: '🏰 Return to the Castle for your reward', next: 'castle_reward', requires: null }
+                ],
+                onEnter: (state) => {
+                    state.gold += 300;
+                    state.level = 4;
+                    state.defeatedBosses.add('goblin_king');
+                    removeItem(state, 'bomb', 1);
+                    addItem(state, 'goblin_proof', 1);
+                }
+            },
+            castle_reward: {
+                title: '🎁 Royal Reward',
+                text: 'The King himself congratulates you! You receive gold and a rare item from the royal treasury. You are now a legendary hero!',
+                actions: [
+                    { text: '⬅️ Return to Village', next: 'village', requires: null }
+                ],
+                onEnter: (state) => {
+                    state.gold += 150;
+                    addItem(state, 'royal_seal', 1);
+                }
+            },
+            amulet_quest: {
+                title: '💎 The Lost Amulet Quest',
+                text: 'You search ancient ruins for the legendary Lost Amulet. After much exploration, you find it! It glows with mysterious power.',
+                actions: [
+                    { text: '✨ Take the Amulet', next: 'amulet_found', requires: null }
+                ],
+                onEnter: (state) => {
+                    addItem(state, 'amulet', 1);
+                }
+            },
+            amulet_found: {
+                title: '✨ Amulet Acquired',
+                text: 'The amulet grants you +50 health and magical protection. You feel much stronger!',
+                actions: [
+                    { text: '⬅️ Return to Castle', next: 'castle', requires: null },
+                    { text: '🏘️ Return to Village', next: 'village', requires: null }
+                ],
+                onEnter: (state) => {
+                    state.health = Math.min(100, state.health + 50);
+                }
+            },
+            tower: {
+                title: '👻 The Haunted Tower',
+                text: 'You climb the creaky stairs of the haunted tower. Ghosts wail around you. At the top, you find the ghost of an ancient wizard.',
+                actions: [
+                    { text: '💬 Speak to the Ghost', next: 'wizard_ghost', requires: null },
+                    { text: '🏃 Run away', next: 'castle', requires: null }
+                ]
+            },
+            wizard_ghost: {
+                title: '👻 The Wizard\'s Gift',
+                text: 'The ghost offers you ancient magical knowledge. You learn spells and gain a magical staff!',
+                actions: [
+                    { text: '✨ Accept the gift', next: 'tower_complete', requires: null }
+                ],
+                onEnter: (state) => {
+                    addItem(state, 'staff', 1);
+                    addItem(state, 'spell_book', 1);
+                }
+            },
+            tower_complete: {
+                title: '✨ Tower Mystery Solved',
+                text: 'Armed with new magical powers, you feel the tower\'s haunting lift. Peace has been restored.',
+                actions: [
+                    { text: '⬅️ Return to Castle', next: 'castle', requires: null },
+                    { text: '🏘️ Return to Village', next: 'village', requires: null }
+                ]
+            },
+            shop: {
+                title: '🏪 The General Store',
+                text: 'You enter a cozy shop filled with supplies and magical items. The shopkeeper greets you warmly. What would you like to buy?',
+                actions: [
+                    { text: '🗡️ Buy Sword (50 gold)', next: 'buy_sword', requires: null, cost: 50 },
+                    { text: '🛡️ Buy Shield (75 gold)', next: 'buy_shield', requires: null, cost: 75 },
+                    { text: '💣 Buy Bomb (30 gold)', next: 'buy_bomb', requires: null, cost: 30 },
+                    { text: '🍎 Buy Health Potion (25 gold)', next: 'buy_potion', requires: null, cost: 25 },
+                    { text: '⬅️ Leave the shop', next: 'village', requires: null }
+                ]
+            },
+            buy_sword: {
+                title: '🗡️ Sword Purchased',
+                text: 'You buy a sturdy sword. It will serve you well in combat!',
+                actions: [
+                    { text: '🏪 Back to Shop', next: 'shop', requires: null }
+                ],
+                onEnter: (state) => {
+                    if (state.gold >= 50) {
+                        state.gold -= 50;
+                        addItem(state, 'sword', 1);
+                    }
+                }
+            },
+            buy_shield: {
+                title: '🛡️ Shield Purchased',
+                text: 'You buy a protective shield. It glows with defensive magic.',
+                actions: [
+                    { text: '🏪 Back to Shop', next: 'shop', requires: null }
+                ],
+                onEnter: (state) => {
+                    if (state.gold >= 75) {
+                        state.gold -= 75;
+                        addItem(state, 'shield', 1);
+                    }
+                }
+            },
+            buy_bomb: {
+                title: '💣 Bomb Purchased',
+                text: 'You buy a powerful bomb. Use it wisely!',
+                actions: [
+                    { text: '🏪 Back to Shop', next: 'shop', requires: null }
+                ],
+                onEnter: (state) => {
+                    if (state.gold >= 30) {
+                        state.gold -= 30;
+                        addItem(state, 'bomb', 1);
+                    }
+                }
+            },
+            buy_potion: {
+                title: '🍎 Health Potion Purchased',
+                text: 'You buy a magical health potion. Drink it to restore 50 health!',
+                actions: [
+                    { text: '🏪 Back to Shop', next: 'shop', requires: null }
+                ],
+                onEnter: (state) => {
+                    if (state.gold >= 25) {
+                        state.gold -= 25;
+                        addItem(state, 'potion', 1);
+                    }
+                }
+            }
+        };
+
+        // Helper Functions
+        function addItem(state, itemName, quantity = 1) {
+            state.inventory[itemName] = (state.inventory[itemName] || 0) + quantity;
+        }
+
+        function removeItem(state, itemName, quantity = 1) {
+            if (state.inventory[itemName]) {
+                state.inventory[itemName] -= quantity;
+                if (state.inventory[itemName] <= 0) {
+                    delete state.inventory[itemName];
+                }
+            }
+        }
+
+        function hasItem(state, itemName) {
+            return state.inventory[itemName] && state.inventory[itemName] > 0;
+        }
+
+        function updateUI() {
+            document.getElementById('gold').textContent = gameState.gold;
+            document.getElementById('health').textContent = gameState.health;
+            document.getElementById('level').textContent = gameState.level;
+            updateInventory();
+        }
+
+        function updateInventory() {
+            const inventoryList = document.getElementById('inventoryList');
+            const items = Object.entries(gameState.inventory);
+
+            if (items.length === 0) {
+                inventoryList.innerHTML = '<span class="empty-inventory">No items yet...</span>';
+            } else {
+                inventoryList.innerHTML = items.map(([name, count]) => {
+                    return `<div class="item">${name}<span class="item-count">(${count})</span></div>`;
+                }).join('');
+            }
+        }
+
+        function showMessage(text, type = 'success') {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = text;
+            messageEl.className = `message ${type}`;
+            messageEl.style.display = 'block';
+            setTimeout(() => {
+                messageEl.style.display = 'none';
+            }, 3000);
+        }
+
+        function canAfford(scene, action) {
+            return !action.cost || gameState.gold >= action.cost;
+        }
+
+        function canAccess(action) {
+            return !action.requires || hasItem(gameState, action.requires);
+        }
+
+        function goToScene(sceneName) {
+            if (!scenes[sceneName]) {
+                showMessage('Scene not found!', 'error');
+                return;
+            }
+
+            const scene = scenes[sceneName];
+            gameState.currentScene = sceneName;
+            gameState.visitedScenes.add(sceneName);
+
+            // Call onEnter hook if it exists
+            if (scene.onEnter) {
+                scene.onEnter(gameState);
+            }
+
+            // Update story display
+            document.getElementById('storyTitle').textContent = scene.title;
+            document.getElementById('storyText').textContent = scene.text;
+
+            // Update buttons
+            const buttonsSection = document.getElementById('buttonsSection');
+            buttonsSection.innerHTML = '';
+
+            scene.actions.forEach(action => {
+                const button = document.createElement('button');
+                button.textContent = action.text;
+
+                const canAcccessScene = canAccess(action);
+                const canAffordItem = canAfford(scene, action);
+
+                if (!canAcccessScene) {
+                    button.disabled = true;
+                    button.textContent += ' (Missing item: ' + action.requires + ')';
+                } else if (!canAffordItem) {
+                    button.disabled = true;
+                    button.textContent += ' (Not enough gold)';
+                }
+
+                if (action.requires && action.requires !== 'null') {
+                    button.classList.add('special-action');
+                }
+
+                button.addEventListener('click', () => {
+                    if (!canAcccessScene) {
+                        showMessage(`You need ${action.requires} to do this!`, 'warning');
+                        return;
+                    }
+                    if (!canAffordItem) {
+                        showMessage('You don\'t have enough gold!', 'error');
+                        return;
+                    }
+                    goToScene(action.next);
+                });
+
+                buttonsSection.appendChild(button);
+            });
+
+            updateUI();
+        }
+
+        // Start the game
+        goToScene('village');
+    </script>
+</body>
+</html>
